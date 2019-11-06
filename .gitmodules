@@ -1,0 +1,3 @@
+[submodule "SmsHandler"]
+	path = SmsHandler
+	url = https://github.com/RicDeZen/SmsHandler

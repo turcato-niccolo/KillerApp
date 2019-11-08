@@ -40,12 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient mFusedLocationClient;
     protected Location mLastLocation;
     private Location auxLocation;
-    private PendingIntent intent;
+    private PendingIntent locationIntent;
     private LocationRequest locationRequest;
-    private long LOCATION_INTERVAL = 12000;
-    private String position;
-    private double latitude;
-    private double altitude;
+    private changeLabelCommand labelCommand;
+
 
 
     @Override
@@ -55,8 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         txtLocation = findViewById(R.id.txtLocation);
-
-
+        labelCommand = new changeLabelCommand();
 
         // mFusedLocationClient.getLastLocation().addOnSuccessListener(this, getLastLocation());
 
@@ -65,9 +62,7 @@ public class MainActivity extends AppCompatActivity {
         btnLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getLastLocation();
-                //Log.d(MAIN_ACTIVITY_TAG, "Last Location: "+ mLastLocation.getLatitude() +"; " +mLastLocation.getAltitude());
-                txtLocation.setText("Last Location: "+ latitude +"; " +altitude);
+                getLastLocation(labelCommand); //Changes the label too
             }
         });
     }
@@ -101,29 +96,30 @@ public class MainActivity extends AppCompatActivity {
                 new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION}, REQUEST_CODE_LOCATION);
     }
 
-    private void getLastLocation()
+    /***
+     * Method that gets the last Location available of the device, and executes the imposed command
+     * callind command.execute(foundLocation)
+     *
+     * @param command object of a class that implements interface Command
+     */
+    private void getLastLocation(final Command command)
     {
-        //mFusedLocationClient.flushLocations();
         Log.d(MAIN_ACTIVITY_TAG, "Getting last location");
 
-        mFusedLocationClient.flushLocations();
+        mFusedLocationClient.flushLocations(); //watch out, might cause problems
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(PRIORITY_HIGH_ACCURACY);
-
-
-
 
         mFusedLocationClient.getLocationAvailability().addOnSuccessListener(new OnSuccessListener<LocationAvailability>() {
             @Override
             public void onSuccess(LocationAvailability locationAvailability) {
                 Log.d(MAIN_ACTIVITY_TAG, "onSuccess: locationAvailability.isLocationAvailable " + locationAvailability.isLocationAvailable());
 
-
-                    mFusedLocationClient.requestLocationUpdates(locationRequest, intent)
+                    mFusedLocationClient.requestLocationUpdates(locationRequest, locationIntent)
                             .addOnCompleteListener(new OnCompleteListener() {
                                 @Override
                                 public void onComplete(@NonNull Task task) {
-                                    Log.d("MainActivity", "Update Result: " + task.getResult());
+                                    Log.d(MAIN_ACTIVITY_TAG, "Update Result: " + task.getResult());
                                 }
                             });
 
@@ -135,14 +131,13 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(MAIN_ACTIVITY_TAG, "Completed lastLocation");
                             Log.d(MAIN_ACTIVITY_TAG, "Task<Location> successful " +  task.isSuccessful());
 
-
                             if (task.isSuccessful() && task.getResult() != null) {
-
                                 mLastLocation = task.getResult();
-                                position = mLastLocation.toString();
-                                latitude = mLastLocation.getLatitude();
-                                altitude = mLastLocation.getAltitude();
                                 Log.d(MAIN_ACTIVITY_TAG, "Victory!" +mLastLocation.toString());
+                                command.execute(mLastLocation);
+                                //mLastLocation is used directly here because once out of OnComplete
+                                //the variable becomes null, not clear why
+
                             } else if (!task.isSuccessful()) {
                                 Log.d(MAIN_ACTIVITY_TAG, "Task<Location> not successful");
                             } else if (task.getResult() == null) {
@@ -161,9 +156,6 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d(MAIN_ACTIVITY_TAG, "Task<Location> getLastLocation: Canceled");
                                 }
                             });
-                Log.d(MAIN_ACTIVITY_TAG, "End of OnSuccess " +position);
-                Log.d(MAIN_ACTIVITY_TAG, "End of OnSuccess " +latitude + ", " + altitude);
-
             }
         })
         .addOnCanceledListener(new OnCanceledListener() {
@@ -179,22 +171,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-        mFusedLocationClient.removeLocationUpdates(intent);
-
-
-
-        //At this point mLastLocation becomes null, WTF
+        mFusedLocationClient.removeLocationUpdates(locationIntent);
+        //At this point mLastLocation is null
         //Log.d(MAIN_ACTIVITY_TAG, mLastLocation.toString());
-
 
     }
 
 
-
-
-
-
-
+    public class changeLabelCommand implements Command<Location> {
+        public void execute(Location foundLocation) {
+            txtLocation.setText("Last Location: " + foundLocation.getLatitude() + "; " + foundLocation.getLongitude());
+        }
+    }
 
 }
+

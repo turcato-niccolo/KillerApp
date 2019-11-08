@@ -7,19 +7,26 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.dezen.riccardo.smshandler.SMSMessage;
 import com.dezen.riccardo.smshandler.SmsHandler;
 
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
-    public final String ACCESS_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
-    public final String ACCESS_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
-    public final String ACCESS_BACKGROUND_LOCATION = "android.permission.ACCESS_BACKGROUND_LOCATION";
-    public final String SEND_SMS = "android.permission.SEND_SMS";
-    public final String RECEIVE_SMS = "android.permission.RECEIVE_SMS";
-    public final String READ_SMS = "android.permission.READ_SMS";
-    public final int REQUEST_CODE_SMS = 1;
+    private EditText phoneNumber;
+    private Button sendButton;
+    private String messaggeConstant="ciao";
+
+
+    private static final String[] permissions = {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.RECEIVE_SMS
+    };
 
     private SmsHandler smsHandler;
 
@@ -27,22 +34,31 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        phoneNumber=findViewById(R.id.phoneNumber);
+        sendButton=findViewById(R.id.sendButton);
 
         smsHandler = new SmsHandler();
         smsHandler.registerReceiver(getApplicationContext(), true, false, false);
         smsHandler.setListener(this);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessage(phoneNumber.getText().toString());
+            }
+        });
 
-        requestSmsPermission();
+        requestPermissions();
     }
-
-    public void requestSmsPermission()
+    public void sendMessage(String destination)
     {
-        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) +
-                ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS))
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{SEND_SMS, RECEIVE_SMS, READ_SMS}, REQUEST_CODE_SMS);
-        }
+        smsHandler.sendSMS(this, destination, messaggeConstant);
+    }
+    public void requestPermissions()
+    {
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)+
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)+
+                ContextCompat.checkSelfPermission(this,Manifest.permission.SEND_SMS)!=PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(this, permissions, 0);
     }
 
     /***
@@ -67,4 +83,11 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     {
         //TODO? Is it necessary? the other client should as well send a confirmation
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        smsHandler.clearListener();
+        smsHandler.unregisterReceiver(getApplicationContext());
+    }
+
 }

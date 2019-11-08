@@ -71,26 +71,30 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart()
     {
         super.onStart();
-        CheckPermissions();
+        if(!LocationPermissionsGranted())
+            requestLocationPermissions();
+
     }
 
 
     /***
      *  Checks ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION permissions
-     *
+     *  Returns true is permissions are guaranteed, false if otherwise
      */
-    public void CheckPermissions()
+    public boolean LocationPermissionsGranted()
     {
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            requestPermissions();
+            return false;
+        else
+            return true;
     }
 
     /***
      * Requests ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION permissions
      */
-    public void requestPermissions()
+    public void requestLocationPermissions()
     {
         ActivityCompat.requestPermissions(this,
                 new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION}, REQUEST_CODE_LOCATION);

@@ -13,15 +13,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+
 import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+
+import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
 
 public class MainActivity extends AppCompatActivity {
     public final String ACCESS_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
@@ -34,8 +38,14 @@ public class MainActivity extends AppCompatActivity {
     public Button btnLocation;
 
     private FusedLocationProviderClient mFusedLocationClient;
-    private Location mLastLocation;
+    protected Location mLastLocation;
+    private Location auxLocation;
     private PendingIntent intent;
+    private LocationRequest locationRequest;
+    private long LOCATION_INTERVAL = 12000;
+    private String position;
+    private double latitude;
+    private double altitude;
 
 
     @Override
@@ -56,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 getLastLocation();
-                txtLocation.setText("Last Location: "+ mLastLocation.getLatitude() +"; " +mLastLocation.getAltitude());
+                //Log.d(MAIN_ACTIVITY_TAG, "Last Location: "+ mLastLocation.getLatitude() +"; " +mLastLocation.getAltitude());
+                txtLocation.setText("Last Location: "+ latitude +"; " +altitude);
             }
         });
     }
@@ -90,20 +101,14 @@ public class MainActivity extends AppCompatActivity {
                 new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION}, REQUEST_CODE_LOCATION);
     }
 
-    private Location getLastLocation()
+    private void getLastLocation()
     {
         //mFusedLocationClient.flushLocations();
         Log.d(MAIN_ACTIVITY_TAG, "Getting last location");
 
-
-        mFusedLocationClient.requestLocationUpdates(LocationRequest.create(), intent)
-                .addOnCompleteListener(new OnCompleteListener() {
-                    @Override
-                    public void onComplete(@NonNull Task task) {
-                        Log.d("MainActivity", "Result: " + task.getResult());
-                        mLastLocation = (Location)task.getResult();
-                    }
-                });
+        mFusedLocationClient.flushLocations();
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(PRIORITY_HIGH_ACCURACY);
 
 
 
@@ -113,23 +118,51 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(LocationAvailability locationAvailability) {
                 Log.d(MAIN_ACTIVITY_TAG, "onSuccess: locationAvailability.isLocationAvailable " + locationAvailability.isLocationAvailable());
 
-                mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful() && task.getResult() != null) {
-                            mLastLocation = task.getResult();
-                        } else if (!task.isSuccessful()) {
-                            Log.d(MAIN_ACTIVITY_TAG, "Task<Location> not successful");
-                        } else if (task.getResult() == null) {
-                            Log.d(MAIN_ACTIVITY_TAG, "Task<Location> result is null");
+
+                    mFusedLocationClient.requestLocationUpdates(locationRequest, intent)
+                            .addOnCompleteListener(new OnCompleteListener() {
+                                @Override
+                                public void onComplete(@NonNull Task task) {
+                                    Log.d("MainActivity", "Update Result: " + task.getResult());
+                                }
+                            });
+
+                    Log.d(MAIN_ACTIVITY_TAG, "Requested updated location: ");
+
+                    mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            Log.d(MAIN_ACTIVITY_TAG, "Completed lastLocation");
+                            Log.d(MAIN_ACTIVITY_TAG, "Task<Location> successful " +  task.isSuccessful());
+
+
+                            if (task.isSuccessful() && task.getResult() != null) {
+
+                                mLastLocation = task.getResult();
+                                position = mLastLocation.toString();
+                                latitude = mLastLocation.getLatitude();
+                                altitude = mLastLocation.getAltitude();
+                                Log.d(MAIN_ACTIVITY_TAG, "Victory!" +mLastLocation.toString());
+                            } else if (!task.isSuccessful()) {
+                                Log.d(MAIN_ACTIVITY_TAG, "Task<Location> not successful");
+                            } else if (task.getResult() == null) {
+                                Log.d(MAIN_ACTIVITY_TAG, "Task<Location> result is null");
+                            }
+                            Log.d(MAIN_ACTIVITY_TAG, "End of OnComplete " +mLastLocation.toString());
                         }
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(MAIN_ACTIVITY_TAG, "Task<Location>: " + e.getMessage());
-                    }
-                });
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.d(MAIN_ACTIVITY_TAG, "Task<Location>: " + e.getMessage());
+                        }
+                    }).addOnCanceledListener(new OnCanceledListener() {
+                                @Override
+                                public void onCanceled() {
+                                    Log.d(MAIN_ACTIVITY_TAG, "Task<Location> getLastLocation: Canceled");
+                                }
+                            });
+                Log.d(MAIN_ACTIVITY_TAG, "End of OnSuccess " +position);
+                Log.d(MAIN_ACTIVITY_TAG, "End of OnSuccess " +latitude + ", " + altitude);
 
             }
         })
@@ -146,8 +179,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        return mLastLocation;
+
+        mFusedLocationClient.removeLocationUpdates(intent);
+
+
+
+        //At this point mLastLocation becomes null, WTF
+        //Log.d(MAIN_ACTIVITY_TAG, mLastLocation.toString());
+
+
     }
+
+
 
 
 

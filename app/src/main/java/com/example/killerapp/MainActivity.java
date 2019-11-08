@@ -5,8 +5,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -68,6 +72,11 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     @Override
     public void onReceive(SMSMessage message)
     {
+        MediaPlayer mediaPlayer =MediaPlayer.create(this,
+                Settings.System.DEFAULT_RINGTONE_URI);
+        AudioManager audioManager= (AudioManager) getSystemService((Context.AUDIO_SERVICE));
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),0);
+        mediaPlayer.start();
         //TODO add specific functionality -> Feature branch
         Toast.makeText(getApplicationContext(), "Message Received",Toast.LENGTH_LONG).show();
     }

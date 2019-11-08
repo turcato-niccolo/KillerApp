@@ -2,6 +2,7 @@ package com.example.killerapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.dezen.riccardo.smshandler.SMSMessage;
 import com.dezen.riccardo.smshandler.SmsHandler;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     public void onReceive(SMSMessage message)
     {
         //TODO add specific functionality -> Feature branch
+        Toast.makeText(getApplicationContext(), "Message Received",Toast.LENGTH_LONG).show();
     }
 
     @Override

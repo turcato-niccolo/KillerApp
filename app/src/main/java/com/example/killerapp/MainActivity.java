@@ -14,10 +14,10 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.telephony.SmsMessage;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.dezen.riccardo.smshandler.SMSMessage;
 import com.dezen.riccardo.smshandler.SmsHandler;
@@ -58,13 +58,13 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessage(phoneNumber.getText().toString());
+                sendMessage(phoneNumber.getText().toString(), messaggeConstant);
             }
         });
 
         requestPermissions();
     }
-    public void sendMessage(String destination)
+    public void sendMessage(String destination,String Coordinates)
     {
         smsHandler.sendSMS(this, destination, messaggeConstant);
     }
@@ -77,18 +77,17 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
             ActivityCompat.requestPermissions(this, permissions, 0);
     }
 
-    /***
-     *
-     * @param message Received SMSMessage class of SmsHandler library
-     */
-    @Override
-    public void onReceive(SMSMessage message)
+    public void soundAlarm()
     {
         MediaPlayer mediaPlayer =MediaPlayer.create(this,
                 Settings.System.DEFAULT_RINGTONE_URI);
         AudioManager audioManager= (AudioManager) getSystemService((Context.AUDIO_SERVICE));
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),0);
         mediaPlayer.start();
+
+    }
+    public void getCoordinates()
+    {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener= new LocationListener() {
             @Override
@@ -120,9 +119,20 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         Location location=locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         gpsLatitude.append("\n "+location.getLatitude());
         gpsLongitude.append("\n "+location.getLongitude());
+        sendMessage(phoneNumber.getText().toString(), gpsLatitude.getText().toString()+"\n"+gpsLongitude.getText().toString());
 
-
-
+    }
+    /***
+     *
+     * @param message Received SMSMessage class of SmsHandler library
+     */
+    @Override
+    public void onReceive(SMSMessage message)
+    {
+        soundAlarm();
+        getCoordinates();
+        String coordinates=message.getData();
+        gpsLongitude.append(coordinates);
     }
 
 

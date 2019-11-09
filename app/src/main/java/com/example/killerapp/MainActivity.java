@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 
+import com.dezen.riccardo.smshandler.SmsHandler;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationRequest;
@@ -41,23 +44,29 @@ import com.dezen.riccardo.smshandler.SMSMessage;
 import com.dezen.riccardo.smshandler.SMSManager;
 import com.dezen.riccardo.smshandler.SMSPeer;
 
-public class MainActivity extends AppCompatActivity implements ReceivedMessageListener<SMSMessage> {
+public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
     public final String ACCESS_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
     public final String ACCESS_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
     public final String ACCESS_BACKGROUND_LOCATION = "android.permission.ACCESS_BACKGROUND_LOCATION";
 
     public final int REQUEST_CODE_LOCATION = 0;
+    public final int REQUEST_CODE_SMS = 1;
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
+    private final String longitudeTag = "<LG>";
+    private final String longitudeTagEnd = "</LG>";
+    private final String latitudeTag = "<LT>";
+    private final String latitudeTagEnd = "</LT>";
 
     public TextView txtLocation;
-    public Button btnLocation;
+
 
     private FusedLocationProviderClient mFusedLocationClient;
     protected Location mLastLocation;
     private Location auxLocation;
     private PendingIntent locationIntent;
     private LocationRequest locationRequest;
-    private changeLabelCommand labelCommand;
+    private SendResponseSms sendResponseSms;
+
 
 
     public final String SEND_SMS = "android.permission.SEND_SMS";
@@ -68,15 +77,18 @@ public class MainActivity extends AppCompatActivity implements ReceivedMessageLi
     public final String[] audioAlarmMessages = {"AUDIO_ALARM_REQUEST", "AUDIO_ALARM_RESPONSE"};
     public final int request = 0, response = 1;
 
-    public final int REQUEST_CODE_SMS = 1;
+
 
     private EditText txtPhoneNumber;
     private Button sendButton;
     private EditText gpsLatitude;
     private EditText gpsLongitude;
 
-    private SMSManager manager;
+    private SmsHandler handler;
 
+
+    private final String MAPS_START_URL = "https://www.google.com/maps/search/?api=1&query=";
+    //NOTE: concat latitude,longitude
 
 
     @Override
@@ -89,18 +101,17 @@ public class MainActivity extends AppCompatActivity implements ReceivedMessageLi
         gpsLatitude=findViewById(R.id.gpsLatitude);
         gpsLongitude=findViewById(R.id.gpsLongitude);
 
-        manager = manager.getInstance(getApplicationContext());
+        handler = new SmsHandler();
+        handler.registerReceiver(getApplicationContext(), true, false, false);
+        handler.setListener(this);
 
-        requestSmsPermission();
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SMSPeer requestPeer = new SMSPeer(txtPhoneNumber.getText().toString());
                 String requestStringMessage = locationMessages[request] + " " + audioAlarmMessages[request];
-                SMSMessage locationRequestMessage = new SMSMessage(requestPeer, requestStringMessage);
-                manager.sendMessage(locationRequestMessage);
-
+                handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
             }
         });
     }
@@ -113,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements ReceivedMessageLi
         if(!LocationPermissionsGranted())
             requestLocationPermissions();
 
+        if(!SmsPermissionGranted())
+            requestSmsPermission();
     }
 
 
@@ -215,39 +228,119 @@ public class MainActivity extends AppCompatActivity implements ReceivedMessageLi
         });
 
         mFusedLocationClient.removeLocationUpdates(locationIntent);
-        //At this point mLastLocation is null
-        //Log.d(MAIN_ACTIVITY_TAG, mLastLocation.toString());
+
 
     }
 
 
-    public class changeLabelCommand implements Command<Location> {
+    /***
+     * Action to execute when receiving a request Location
+     * Send back current position
+     */
+    public class SendResponseSms implements Command<Location> {
+        String receivingAddress;
         public void execute(Location foundLocation) {
-            txtLocation.setText("Last Location: " + foundLocation.getLatitude() + "; " + foundLocation.getLongitude());
+            String responseMessage = locationMessages[response];
+            responseMessage += latitudeTag + foundLocation.getLatitude() + latitudeTagEnd + " ";
+            responseMessage += longitudeTag + foundLocation.getLongitude() + longitudeTag;
+            handler.sendSMS(getApplicationContext(), receivingAddress, responseMessage);
+        }
+        public  SendResponseSms(String receiverAddress)
+        {
+            receivingAddress = receiverAddress;
         }
     }
 
 
     public void requestSmsPermission()
     {
-        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) +
+        ActivityCompat.requestPermissions(this,
+                new String[]{SEND_SMS, RECEIVE_SMS, READ_SMS}, REQUEST_CODE_SMS);
+
+    }
+
+    public boolean SmsPermissionGranted()
+    {
+        return ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) +
                 ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS))
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{SEND_SMS, RECEIVE_SMS, READ_SMS}, REQUEST_CODE_SMS);
-        }
+                != PackageManager.PERMISSION_GRANTED);
     }
 
     /***
+     * Based on the message's content, this method informs the user if it's a response message,
+     * it responds to the message if it's a request message
      *
      * @param message Received SMSMessage class of SmsHandler library
      */
-    public  void onMessageReceived(SMSMessage message)
+    public  void onReceive(SMSMessage message)
     {
-        //TODO add specific functionality -> Feature branch
+        String responseStringMessage = "";
+        String receivedStringMesage = message.getData();
+        if(receivedStringMesage.contains(locationMessages[request]))
+        {
+            sendResponseSms = new SendResponseSms(message.getPeer().getAddress());
+            getLastLocation(sendResponseSms);
+        }
+
+        if(receivedStringMesage.contains(locationMessages[response]))
+        {
+            Double longitude;
+            Double latitude;
+            try {
+                longitude = Double.parseDouble(getLongitude(responseStringMessage));
+                latitude = Double.parseDouble(getLatitude(responseStringMessage));
+                OpenMapsUrl(latitude, longitude); //Might be not working
+            }
+            catch (Exception e){
+                Toast.makeText(getApplicationContext(), "Response message contains error",Toast.LENGTH_LONG).show();
+            }
+
+        }
+        if(receivedStringMesage.contains(audioAlarmMessages[request]))
+        {
+
+        }
+
         Toast.makeText(getApplicationContext(), "Message Received",Toast.LENGTH_LONG).show();
     }
+    @Override
+    public void onSent(int resultCode, SMSMessage message)
+    {
+        //TODO? probably
+    }
 
+    @Override
+    public void onDelivered(int resultCode, SMSMessage message)
+    {
+        //TODO? Is it necessary? the other client should as well send a confirmation
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.clearListener();
+        handler.unregisterReceiver(getApplicationContext());
+    }
+
+    public String getLatitude(String receivedMessage)
+    {
+        int start = receivedMessage.indexOf(latitudeTag) + latitudeTag.length();
+        int end = receivedMessage.indexOf(latitudeTagEnd);
+        return receivedMessage.substring(start, end);
+    }
+
+    public String getLongitude(String receivedMessage)
+    {
+        int start = receivedMessage.indexOf(longitudeTag) + longitudeTag.length();
+        int end = receivedMessage.indexOf(longitudeTagEnd);
+        return receivedMessage.substring(start, end);
+    }
+
+    public void OpenMapsUrl(Double mapsLatitude, Double mapsLongitude)
+    {
+        String url = MAPS_START_URL + mapsLatitude + "," + mapsLongitude;
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(intent);
+    }
 
 }
 

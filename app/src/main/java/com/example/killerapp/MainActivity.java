@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
     public final int REQUEST_CODE_LOCATION = 0;
     public final int REQUEST_CODE_SMS = 1;
+    private final int REQUEST_CODE_PHONE_STATE = 2;
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
     private final String longitudeTag = "<LG>";
     private final String longitudeTagEnd = "</LG>";
@@ -62,8 +63,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
     private FusedLocationProviderClient mFusedLocationClient;
     protected Location mLastLocation;
-    private Location auxLocation;
     private PendingIntent locationIntent;
+
     private LocationRequest locationRequest;
     private SendResponseSms sendResponseSms;
 
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     public final String SEND_SMS = "android.permission.SEND_SMS";
     public final String RECEIVE_SMS = "android.permission.RECEIVE_SMS";
     public final String READ_SMS = "android.permission.READ_SMS";
+    public final String READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
 
     public final String[] locationMessages = {"LOCATION_REQUEST", "LOCATION_RESPONSE"};
     public final String[] audioAlarmMessages = {"AUDIO_ALARM_REQUEST", "AUDIO_ALARM_RESPONSE"};
@@ -81,8 +83,10 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
     private EditText txtPhoneNumber;
     private Button sendButton;
-    private EditText gpsLatitude;
-    private EditText gpsLongitude;
+    private Button sendAlarmRequestButton;
+    private Button sendLocationRequestButton;
+
+
 
     private SmsHandler handler;
 
@@ -98,8 +102,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
         txtPhoneNumber =findViewById(R.id.phoneNumber);
         sendButton=findViewById(R.id.sendButton);
-        gpsLatitude=findViewById(R.id.gpsLatitude);
-        gpsLongitude=findViewById(R.id.gpsLongitude);
+        sendAlarmRequestButton = findViewById(R.id.sendAlarmRequestButton);
+        sendLocationRequestButton = findViewById(R.id.sendLocationRequestButton);
 
         handler = new SmsHandler();
         handler.registerReceiver(getApplicationContext(), true, false, false);
@@ -114,9 +118,28 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
                 handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
             }
         });
+
+        sendLocationRequestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String requestStringMessage = locationMessages[request];
+                handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
+            }
+        });
+
+        sendAlarmRequestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String requestStringMessage = audioAlarmMessages[request];
+                handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
+            }
+        });
     }
 
 
+    /***
+     * Requests Android permissions if not granted
+     */
     @Override
     protected void onStart()
     {
@@ -126,6 +149,9 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
         if(!SmsPermissionGranted())
             requestSmsPermission();
+
+        if(!PhoneStatePermissionGranted())
+            requestPhoneStatePermission();
     }
 
 
@@ -135,12 +161,10 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
      */
     public boolean LocationPermissionsGranted()
     {
-        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            return false;
-        else
-            return true;
+        return (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED);
+
     }
 
     /***
@@ -242,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         public void execute(Location foundLocation) {
             String responseMessage = locationMessages[response];
             responseMessage += latitudeTag + foundLocation.getLatitude() + latitudeTagEnd + " ";
-            responseMessage += longitudeTag + foundLocation.getLongitude() + longitudeTag;
+            responseMessage += longitudeTag + foundLocation.getLongitude() + longitudeTagEnd;
             handler.sendSMS(getApplicationContext(), receivingAddress, responseMessage);
         }
         public  SendResponseSms(String receiverAddress)
@@ -255,15 +279,28 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     public void requestSmsPermission()
     {
         ActivityCompat.requestPermissions(this,
-                new String[]{SEND_SMS, RECEIVE_SMS, READ_SMS}, REQUEST_CODE_SMS);
+                new String[]{Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS,
+                        Manifest.permission.READ_SMS},
+                REQUEST_CODE_SMS);
 
+    }
+    public void requestPhoneStatePermission()
+    {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.READ_PHONE_STATE},
+                REQUEST_CODE_PHONE_STATE);
+    }
+
+    public boolean PhoneStatePermissionGranted()
+    {
+        return (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED);
     }
 
     public boolean SmsPermissionGranted()
     {
-        return ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) +
-                ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS))
-                != PackageManager.PERMISSION_GRANTED);
+        return (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED);
     }
 
     /***
@@ -274,31 +311,38 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
      */
     public  void onReceive(SMSMessage message)
     {
-        String responseStringMessage = "";
+
+
         String receivedStringMesage = message.getData();
+        Log.d(MAIN_ACTIVITY_TAG, "onReceive" + receivedStringMesage);
+
+
         if(receivedStringMesage.contains(locationMessages[request]))
         {
+            //Action to execute when device receives a Location request
             sendResponseSms = new SendResponseSms(message.getPeer().getAddress());
             getLastLocation(sendResponseSms);
         }
 
         if(receivedStringMesage.contains(locationMessages[response]))
         {
-            Double longitude;
-            Double latitude;
+            Double longitude = 0.0;
+            Double latitude = 0.0;
             try {
-                longitude = Double.parseDouble(getLongitude(responseStringMessage));
-                latitude = Double.parseDouble(getLatitude(responseStringMessage));
-                OpenMapsUrl(latitude, longitude); //Might be not working
+                longitude = Double.parseDouble(getLongitude(receivedStringMesage));
+                latitude = Double.parseDouble(getLatitude(receivedStringMesage));
+                Log.d(MAIN_ACTIVITY_TAG, latitude.toString() + "," +longitude.toString());
+                OpenMapsUrl(latitude, longitude); //Should be working
             }
             catch (Exception e){
+                Log.d(MAIN_ACTIVITY_TAG, e.getMessage());
                 Toast.makeText(getApplicationContext(), "Response message contains error",Toast.LENGTH_LONG).show();
             }
 
         }
         if(receivedStringMesage.contains(audioAlarmMessages[request]))
         {
-
+            //TODO: activate alarm
         }
 
         Toast.makeText(getApplicationContext(), "Message Received",Toast.LENGTH_LONG).show();
@@ -325,13 +369,17 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     {
         int start = receivedMessage.indexOf(latitudeTag) + latitudeTag.length();
         int end = receivedMessage.indexOf(latitudeTagEnd);
+        Log.d(MAIN_ACTIVITY_TAG, start +" " +end);
         return receivedMessage.substring(start, end);
     }
 
     public String getLongitude(String receivedMessage)
     {
+        Log.d(MAIN_ACTIVITY_TAG, "getLong: "+ receivedMessage);
         int start = receivedMessage.indexOf(longitudeTag) + longitudeTag.length();
         int end = receivedMessage.indexOf(longitudeTagEnd);
+
+        Log.d(MAIN_ACTIVITY_TAG, start +" " +end);
         return receivedMessage.substring(start, end);
     }
 

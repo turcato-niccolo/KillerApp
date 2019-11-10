@@ -10,35 +10,13 @@
     <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="Show only selected application" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d34836e4-4e73-466a-830d-776557d23964" name="Default Changelist" comment="Added Location fetching Functionality">
-      <change afterPath="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/GetLatitudeTest.java" afterDir="false" />
+    <list default="true" id="d34836e4-4e73-466a-830d-776557d23964" name="Default Changelist" comment="Bug fix in Sms receiving method, now able to extract correctly gps coordinates from response message and to open maps application&#10;Added unit test&#10;UI upgrade, now possible to request Location and audio Alarm singularly and simultaneously">
+      <change afterPath="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/GetLongitudeTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/killerapp/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/killerapp/MainActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/MainActivityTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/proguard-rules.pro" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/androidTest/java/com/dezen/riccardo/smshandler/ExampleInstrumentedTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/CommunicationHandler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/DeliveredMessageListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/Message.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/NotificationCatcherService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/Peer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/ReceivedMessageListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SMSManager.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SMSMessage.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SMSPeer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SentMessageListener.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SmsHandler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SmsReceiver.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SmsUtils.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/database/SmsDao.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/database/SmsDatabase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/database/SmsEntity.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/src/test/java/com/dezen/riccardo/smshandler/ExampleUnitTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -63,34 +41,14 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/killerapp/MainActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2016">
-              <caret line="291" column="72" selection-start-line="291" selection-start-column="72" selection-end-line="291" selection-end-column="72" />
+            <state relative-caret-position="190">
+              <caret line="271" column="8" selection-start-line="271" selection-start-column="8" selection-end-line="271" selection-end-column="8" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#3817#4295#0" expanded="true" />
-                <element signature="e#4294#4295#0" expanded="true" />
-                <element signature="method#LocationPermissionsGranted#0;class#MainActivity#0" />
-                <element signature="method#requestLocationPermissions#0;class#MainActivity#0" />
-                <element signature="e#6206#9073#0" expanded="true" />
-                <element signature="e#6647#6956#0" expanded="true" />
-                <element signature="e#6955#6956#0" expanded="true" />
-                <element signature="e#7120#8435#0" expanded="true" />
-                <element signature="e#8434#8435#0" expanded="true" />
-                <element signature="e#8458#8726#0" expanded="true" />
-                <element signature="e#8725#8726#0" expanded="true" />
-                <element signature="e#8750#9047#0" expanded="true" />
-                <element signature="e#9046#9047#0" expanded="true" />
-                <element signature="e#9072#9073#0" expanded="true" />
-                <element signature="e#9106#9287#0" expanded="true" />
-                <element signature="e#9286#9287#0" expanded="true" />
-                <element signature="e#9319#9527#0" expanded="true" />
-                <element signature="e#9526#9527#0" expanded="true" />
-                <element signature="e#9931#9932#0" expanded="true" />
-                <element signature="e#9988#9989#0" expanded="true" />
-                <element signature="method#requestSmsPermission#0;class#MainActivity#0" />
-                <element signature="method#SmsPermissionGranted#0;class#MainActivity#0" />
-                <element signature="method#getLongitude#0;class#MainActivity#0" />
-                <element signature="e#12224#12471#0" />
+                <element signature="e#4370#4602#0" />
+                <element signature="e#5633#9666#0" />
+                <element signature="e#10346#10347#0" expanded="true" />
+                <element signature="e#10404#10405#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -99,8 +57,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/test/java/com/example/killerapp/GetLatitudeTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="450">
-              <caret line="18" column="1" lean-forward="true" selection-start-line="18" selection-start-column="1" selection-end-line="18" selection-end-column="1" />
+            <state relative-caret-position="384">
+              <caret line="16" column="5" lean-forward="true" selection-start-line="7" selection-start-column="4" selection-end-line="16" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -110,22 +68,22 @@
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml">
-          <provider selected="true" editor-type-id="android-designer2" />
-          <provider editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="7" selection-start-line="7" selection-end-line="7" />
+          <provider editor-type-id="android-designer2" />
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="182">
+              <caret line="15" column="5" selection-start-line="15" selection-start-column="5" selection-end-line="15" selection-end-column="5" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml">
+          <provider editor-type-id="android-manifest" />
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="442">
+            <state relative-caret-position="459">
               <caret line="27" selection-start-line="27" selection-end-line="27" />
             </state>
           </provider>
-          <provider editor-type-id="android-manifest" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -175,8 +133,9 @@
         <option value="$PROJECT_DIR$/app/src/main/java/com/example/killerapp/Command.java" />
         <option value="$PROJECT_DIR$/app/build.gradle" />
         <option value="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/onMessageReceived.java" />
-        <option value="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/MainActivityTest.java" />
         <option value="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/GetLatitudeTest.java" />
+        <option value="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/MainActivityTest.java" />
+        <option value="$PROJECT_DIR$/app/src/test/java/com/example/killerapp/GetLongitudeTest.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/example/killerapp/MainActivity.java" />
       </list>
@@ -194,7 +153,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
+      <pane id="Scope" />
+      <pane id="AndroidView" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -265,17 +225,18 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="AndroidView" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="DeviceAndSnapshotComboBoxAction.selectedDevice" value="New_Device_API_29" />
+    <property name="DeviceAndSnapshotComboBoxAction.selectionTime" value="2019-11-10T15:51:11.114Z" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="android.sdk.path" value="$USER_HOME$/AppData/Local/Android/Sdk" />
     <property name="com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary" value="JUnit4" />
     <property name="com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit4" value="" />
     <property name="last_directory_selection" value="$PROJECT_DIR$/app/src/test/java/com/example/killerapp" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../SmsHandler" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.17" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -313,6 +274,40 @@
       <option name="PACKAGE_NAME" value="com.example.killerapp" />
       <option name="MAIN_CLASS_NAME" value="com.example.killerapp.GetLatitudeTest" />
       <option name="METHOD_NAME" value="CorrectResult" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+      <method v="2">
+        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GetLongitudeTest.CorrectResult" type="AndroidJUnit" factoryName="Android JUnit" temporary="true" nameIsGenerated="true">
+      <module name="app" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.killerapp.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.example.killerapp" />
+      <option name="MAIN_CLASS_NAME" value="com.example.killerapp.GetLongitudeTest" />
+      <option name="METHOD_NAME" value="CorrectResult" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+      <method v="2">
+        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="GetLongitudeTest.CorrectResultNegative" type="AndroidJUnit" factoryName="Android JUnit" temporary="true" nameIsGenerated="true">
+      <module name="app" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.killerapp.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.example.killerapp" />
+      <option name="MAIN_CLASS_NAME" value="com.example.killerapp.GetLongitudeTest" />
+      <option name="METHOD_NAME" value="CorrectResultNegative" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
       <method v="2">
@@ -381,6 +376,8 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Android JUnit.GetLongitudeTest.CorrectResultNegative" />
+        <item itemvalue="Android JUnit.GetLongitudeTest.CorrectResult" />
         <item itemvalue="Android JUnit.GetLatitudeTest.CorrectResult" />
       </list>
     </recent_temporary>
@@ -445,7 +442,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573306822605</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added Peer Location request &#10;Prepared for adding Peer audio Alarm request&#10;Changed Library usage, back to SmsHandler">
+      <created>1573316256343</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1573316256343</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -460,6 +464,12 @@
     </history-entry>
     <history-entry file="GetLatitudeTest_CorrectResult - 2019.11.09 at 16h 51m 03s.xml">
       <configuration name="GetLatitudeTest.CorrectResult" configurationId="AndroidJUnit" />
+    </history-entry>
+    <history-entry file="GetLongitudeTest_CorrectResult - 2019.11.10 at 16h 14m 16s.xml">
+      <configuration name="GetLongitudeTest.CorrectResult" configurationId="AndroidJUnit" />
+    </history-entry>
+    <history-entry file="GetLongitudeTest_CorrectResultNegative - 2019.11.10 at 16h 14m 54s.xml">
+      <configuration name="GetLongitudeTest.CorrectResultNegative" configurationId="AndroidJUnit" />
     </history-entry>
   </component>
   <component name="ToolWindowManager">
@@ -479,18 +489,18 @@
       <window_info anchor="bottom" id="TODO" order="1" />
       <window_info anchor="bottom" id="Terminal" order="2" weight="0.312026" />
       <window_info anchor="bottom" id="Event Log" order="3" side_tool="true" weight="0.32936078" />
-      <window_info anchor="bottom" id="Logcat" order="4" weight="0.32936078" />
+      <window_info anchor="bottom" id="Logcat" order="4" weight="0.07042254" />
       <window_info anchor="bottom" id="Android Profiler" order="5" />
-      <window_info anchor="bottom" id="Build" order="6" weight="0.12892741" />
-      <window_info anchor="bottom" id="Messages" order="7" weight="0.32936078" />
+      <window_info anchor="bottom" id="Build" order="6" weight="0.20368364" />
+      <window_info active="true" anchor="bottom" id="Messages" order="7" visible="true" weight="0.32936078" />
       <window_info anchor="bottom" id="Debug" order="8" />
-      <window_info anchor="bottom" id="Run" order="9" weight="0.32936078" />
-      <window_info anchor="right" id="Preview" />
+      <window_info anchor="bottom" id="Run" order="9" weight="0.20801733" />
       <window_info anchor="right" id="Capture Analysis" order="0" />
       <window_info anchor="right" id="Theme Preview" order="1" />
       <window_info anchor="right" id="Palette&#9;" order="2" />
       <window_info anchor="right" id="Device File Explorer" order="3" side_tool="true" />
       <window_info anchor="right" id="Gradle" order="4" />
+      <window_info anchor="right" id="Preview" order="5" />
     </layout>
     <layout-to-restore>
       <window_info id="Captures" order="0" side_tool="true" weight="0.25" />
@@ -558,6 +568,9 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/SmsHandler" />
+    </ignored-roots>
     <MESSAGE value="Added Empty Project" />
     <MESSAGE value="Imported the SMS Library using JitPack&#10;Added Project structure" />
     <MESSAGE value="Removed Submodule SmsHandler" />
@@ -566,46 +579,17 @@
     <MESSAGE value="Improved modularity of methods to request permissions" />
     <MESSAGE value="Fixed problems with dependency to sms Library" />
     <MESSAGE value="Changed Interface (from Dev_Pardeep code)&#10;Added request sms forwarding" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed Interface (from Dev_Pardeep code)&#10;Added request sms forwarding" />
+    <MESSAGE value="Added Peer Location request &#10;Prepared for adding Peer audio Alarm request&#10;Changed Library usage, back to SmsHandler" />
+    <MESSAGE value="Bug fix in Sms receiving method, now able to extract correctly gps coordinates from response message and to open maps application&#10;Added unit test&#10;UI upgrade, now possible to request Location and audio Alarm singularly and simultaneously" />
+    <option name="LAST_COMMIT_MESSAGE" value="Bug fix in Sms receiving method, now able to extract correctly gps coordinates from response message and to open maps application&#10;Added unit test&#10;UI upgrade, now possible to request Location and audio Alarm singularly and simultaneously" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/app/libs/smshandler/SmsHandler.java" />
-    <entry file="file://$PROJECT_DIR$/lib/src/main/AndroidManifest.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="10" column="37" lean-forward="true" selection-start-line="10" selection-start-column="37" selection-end-line="10" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/src/test/java/com/dezen/riccardo/smshandler/ExampleUnitTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="2" column="17" selection-start-line="2" selection-start-column="17" selection-end-line="2" selection-end-column="17" />
-          <folding>
-            <element signature="e#360#361#0" expanded="true" />
-            <element signature="e#398#399#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/src/main/AndroidManifest.xml" />
+    <entry file="file://$PROJECT_DIR$/lib/src/test/java/com/dezen/riccardo/smshandler/ExampleUnitTest.java" />
     <entry file="file://$PROJECT_DIR$/SmsHandler/lib/src/main/java/com/dezen/riccardo/smshandler/NotificationCatcherService.java" />
-    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/NotificationCatcherService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="340">
-          <caret line="23" column="1" selection-start-line="23" selection-start-column="1" selection-end-line="23" selection-end-column="1" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SMSManager.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="586">
-          <caret line="60" column="35" lean-forward="true" selection-start-line="60" selection-start-column="35" selection-end-line="60" selection-end-column="70" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/NotificationCatcherService.java" />
+    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SMSManager.java" />
     <entry file="file://$PROJECT_DIR$/app/src/test/java/com/example/killerapp/ExampleUnitTest.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="187">
@@ -613,27 +597,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/ReceivedMessageListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" selection-start-line="9" selection-end-line="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/CommunicationHandler.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" column="7" selection-start-line="9" selection-start-column="7" selection-end-line="9" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SmsReceiver.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="612">
-          <caret line="50" column="9" selection-start-line="50" selection-start-column="9" selection-end-line="50" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/ReceivedMessageListener.java" />
+    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/CommunicationHandler.java" />
+    <entry file="file://$PROJECT_DIR$/lib/src/main/java/com/dezen/riccardo/smshandler/SmsReceiver.java" />
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="204">
@@ -641,13 +607,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitmodules">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" selection-start-line="3" selection-end-line="3" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitmodules" />
     <entry file="file://$PROJECT_DIR$/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="323">
@@ -663,6 +623,15 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/killerapp/Command.java" />
+    <entry file="file://$PROJECT_DIR$/app/src/test/java/com/example/killerapp/onMessageReceived.java" />
+    <entry file="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml">
+      <provider editor-type-id="android-manifest" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="459">
+          <caret line="27" selection-start-line="27" selection-end-line="27" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="374">
@@ -670,76 +639,48 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="27" selection-start-line="27" selection-end-line="27" />
-        </state>
-      </provider>
-      <provider editor-type-id="android-manifest" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/test/java/com/example/killerapp/onMessageReceived.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="8" column="4" lean-forward="true" selection-start-line="8" selection-start-column="4" selection-end-line="8" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/test/java/com/example/killerapp/MainActivityTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="31" selection-end-column="1" />
+        <state relative-caret-position="136">
+          <caret line="10" column="5" selection-start-line="10" selection-start-column="5" selection-end-line="10" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/test/java/com/example/killerapp/GetLatitudeTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="18" column="1" lean-forward="true" selection-start-line="18" selection-start-column="1" selection-end-line="18" selection-end-column="1" />
+        <state relative-caret-position="384">
+          <caret line="16" column="5" lean-forward="true" selection-start-line="7" selection-start-column="4" selection-end-line="16" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/test/java/com/example/killerapp/GetLongitudeTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="413">
+          <caret line="23" column="29" lean-forward="true" selection-start-line="23" selection-start-column="29" selection-end-line="23" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml">
-      <provider selected="true" editor-type-id="android-designer2" />
-      <provider editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" selection-start-line="7" selection-end-line="7" />
+      <provider editor-type-id="android-designer2" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="182">
+          <caret line="15" column="5" selection-start-line="15" selection-start-column="5" selection-end-line="15" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/killerapp/MainActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2016">
-          <caret line="291" column="72" selection-start-line="291" selection-start-column="72" selection-end-line="291" selection-end-column="72" />
+        <state relative-caret-position="190">
+          <caret line="271" column="8" selection-start-line="271" selection-start-column="8" selection-end-line="271" selection-end-column="8" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#3817#4295#0" expanded="true" />
-            <element signature="e#4294#4295#0" expanded="true" />
-            <element signature="method#LocationPermissionsGranted#0;class#MainActivity#0" />
-            <element signature="method#requestLocationPermissions#0;class#MainActivity#0" />
-            <element signature="e#6206#9073#0" expanded="true" />
-            <element signature="e#6647#6956#0" expanded="true" />
-            <element signature="e#6955#6956#0" expanded="true" />
-            <element signature="e#7120#8435#0" expanded="true" />
-            <element signature="e#8434#8435#0" expanded="true" />
-            <element signature="e#8458#8726#0" expanded="true" />
-            <element signature="e#8725#8726#0" expanded="true" />
-            <element signature="e#8750#9047#0" expanded="true" />
-            <element signature="e#9046#9047#0" expanded="true" />
-            <element signature="e#9072#9073#0" expanded="true" />
-            <element signature="e#9106#9287#0" expanded="true" />
-            <element signature="e#9286#9287#0" expanded="true" />
-            <element signature="e#9319#9527#0" expanded="true" />
-            <element signature="e#9526#9527#0" expanded="true" />
-            <element signature="e#9931#9932#0" expanded="true" />
-            <element signature="e#9988#9989#0" expanded="true" />
-            <element signature="method#requestSmsPermission#0;class#MainActivity#0" />
-            <element signature="method#SmsPermissionGranted#0;class#MainActivity#0" />
-            <element signature="method#getLongitude#0;class#MainActivity#0" />
-            <element signature="e#12224#12471#0" />
+            <element signature="e#4370#4602#0" />
+            <element signature="e#5633#9666#0" />
+            <element signature="e#10346#10347#0" expanded="true" />
+            <element signature="e#10404#10405#0" expanded="true" />
           </folding>
         </state>
       </provider>

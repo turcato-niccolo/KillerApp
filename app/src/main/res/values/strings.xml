@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">KillerApp</string>
+    <string name="location_request">LOCATION REQUEST</string>
 </resources>

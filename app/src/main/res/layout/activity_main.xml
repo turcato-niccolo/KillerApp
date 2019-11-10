@@ -23,28 +23,23 @@
         android:inputType="phone"
         android:hint="phone number"></EditText>
 
-    <EditText
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="text"
-        android:id="@+id/gpsLongitude"
-        android:layout_marginTop="20dp"
-        ></EditText>
-
-    <EditText
-        android:id="@+id/gpsLatitude"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"
-        android:inputType="text"></EditText>
-
     <Button
         android:id="@+id/sendButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:text="LOCATION and ALARM REQUEST" />
+
+    <Button
+        android:id="@+id/sendLocationRequestButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/location_request" />
+
+    <Button
+        android:id="@+id/sendAlarmRequestButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ALARM REQUEST" />
 
 
 </LinearLayout>

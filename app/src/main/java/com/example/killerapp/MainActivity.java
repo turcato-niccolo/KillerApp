@@ -14,7 +14,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.telephony.SmsMessage;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -66,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     }
     public void sendMessage(String destination,String Coordinates)
     {
-        smsHandler.sendSMS(this, destination, messaggeConstant);
+        smsHandler.sendSMS(this, destination, Coordinates);
     }
     //request permissions to get gps coordinates and to send sms
     public void requestPermissions()
@@ -119,8 +118,6 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         Location location=locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         gpsLatitude.append("\n "+location.getLatitude());
         gpsLongitude.append("\n "+location.getLongitude());
-        sendMessage(phoneNumber.getText().toString(), gpsLatitude.getText().toString()+"\n"+gpsLongitude.getText().toString());
-
     }
     /***
      *
@@ -128,11 +125,18 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
      */
     @Override
     public void onReceive(SMSMessage message)
+    {   if(message.getData().contains("<#>ciao"))
     {
         soundAlarm();
         getCoordinates();
+        sendMessage(message.getPeer().toString(),gpsLongitude.getText().toString()+"\n"+gpsLatitude.getText().toString());
+    }
+    else
+
+    {
         String coordinates=message.getData();
         gpsLongitude.append(coordinates);
+    }
     }
 
 

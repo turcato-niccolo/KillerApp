@@ -4,13 +4,20 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -38,11 +45,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.dezen.riccardo.smshandler.ReceivedMessageListener;
 import com.dezen.riccardo.smshandler.SMSMessage;
 
-import com.dezen.riccardo.smshandler.SMSManager;
-import com.dezen.riccardo.smshandler.SMSPeer;
+
+import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
     public final String ACCESS_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
@@ -53,10 +59,9 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     public final int REQUEST_CODE_SMS = 1;
     private final int REQUEST_CODE_PHONE_STATE = 2;
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
-    private final String longitudeTag = "<LG>";
-    private final String longitudeTagEnd = "</LG>";
-    private final String latitudeTag = "<LT>";
-    private final String latitudeTagEnd = "</LT>";
+    private Constants constants;
+
+    private final String killerAppWakelockTag = "killerapp:wakelockTag";
 
     public TextView txtLocation;
 
@@ -66,7 +71,6 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     private PendingIntent locationIntent;
 
     private LocationRequest locationRequest;
-    private SendResponseSms sendResponseSms;
 
 
 
@@ -75,9 +79,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     public final String READ_SMS = "android.permission.READ_SMS";
     public final String READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
 
-    public final String[] locationMessages = {"LOCATION_REQUEST", "LOCATION_RESPONSE"};
-    public final String[] audioAlarmMessages = {"AUDIO_ALARM_REQUEST", "AUDIO_ALARM_RESPONSE"};
-    public final int request = 0, response = 1;
+
 
 
 
@@ -87,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     private Button sendLocationRequestButton;
 
 
-
+    private PowerManager.WakeLock wakeLock;
     private SmsHandler handler;
 
 
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         txtPhoneNumber =findViewById(R.id.phoneNumber);
@@ -109,12 +112,19 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         handler.registerReceiver(getApplicationContext(), true, false, false);
         handler.setListener(this);
 
+        constants = new Constants();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        RequestAllPermissions();
+
+
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String requestStringMessage = locationMessages[request] + " " + audioAlarmMessages[request];
+                //Wake key to indicate urgency to the device
+                String requestStringMessage = SmsHandler.WAKE_KEY + constants.locationMessages[constants.request]
+                        + " " + constants.audioAlarmMessages[constants.request];
                 handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
             }
         });
@@ -122,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         sendLocationRequestButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String requestStringMessage = locationMessages[request];
+                String requestStringMessage = SmsHandler.WAKE_KEY + constants.locationMessages[constants.request];
                 handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
             }
         });
@@ -130,20 +140,25 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         sendAlarmRequestButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String requestStringMessage = audioAlarmMessages[request];
+                String requestStringMessage = SmsHandler.WAKE_KEY + constants.audioAlarmMessages[constants.request];
                 handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
             }
         });
     }
 
 
-    /***
-     * Requests Android permissions if not granted
-     */
+
     @Override
     protected void onStart()
     {
         super.onStart();
+
+    }
+    /***
+     * Requests Android permissions if not granted
+     */
+    private void RequestAllPermissions()
+    {
         if(!LocationPermissionsGranted())
             requestLocationPermissions();
 
@@ -152,6 +167,14 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
         if(!PhoneStatePermissionGranted())
             requestPhoneStatePermission();
+    }
+
+    private void StartActivity(Context context)
+    {
+        Intent alarmIntent = new Intent("android.intent.action.MAIN");
+        alarmIntent.setClass(context, AlarmAndLocateActivity.class);
+        alarmIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(alarmIntent);
     }
 
 
@@ -176,104 +199,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
                 new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION}, REQUEST_CODE_LOCATION);
     }
 
-    /***
-     * Method that gets the last Location available of the device, and executes the imposed command
-     * callind command.execute(foundLocation)
-     *
-     * @param command object of a class that implements interface Command
-     */
-    private void getLastLocation(final Command command)
-    {
-        Log.d(MAIN_ACTIVITY_TAG, "Getting last location");
 
-        mFusedLocationClient.flushLocations(); //watch out, might cause problems
-        locationRequest = LocationRequest.create();
-        locationRequest.setPriority(PRIORITY_HIGH_ACCURACY);
-
-        mFusedLocationClient.getLocationAvailability().addOnSuccessListener(new OnSuccessListener<LocationAvailability>() {
-            @Override
-            public void onSuccess(LocationAvailability locationAvailability) {
-                Log.d(MAIN_ACTIVITY_TAG, "onSuccess: locationAvailability.isLocationAvailable " + locationAvailability.isLocationAvailable());
-
-                    mFusedLocationClient.requestLocationUpdates(locationRequest, locationIntent)
-                            .addOnCompleteListener(new OnCompleteListener() {
-                                @Override
-                                public void onComplete(@NonNull Task task) {
-                                    Log.d(MAIN_ACTIVITY_TAG, "Update Result: " + task.getResult());
-                                }
-                            });
-
-                    Log.d(MAIN_ACTIVITY_TAG, "Requested updated location: ");
-
-                    mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Location> task) {
-                            Log.d(MAIN_ACTIVITY_TAG, "Completed lastLocation");
-                            Log.d(MAIN_ACTIVITY_TAG, "Task<Location> successful " +  task.isSuccessful());
-
-                            if (task.isSuccessful() && task.getResult() != null) {
-                                mLastLocation = task.getResult();
-                                Log.d(MAIN_ACTIVITY_TAG, "Victory!" +mLastLocation.toString());
-                                command.execute(mLastLocation);
-                                //mLastLocation is used directly here because once out of OnComplete
-                                //the variable becomes null, not clear why
-
-                            } else if (!task.isSuccessful()) {
-                                Log.d(MAIN_ACTIVITY_TAG, "Task<Location> not successful");
-                            } else if (task.getResult() == null) {
-                                Log.d(MAIN_ACTIVITY_TAG, "Task<Location> result is null");
-                            }
-                            Log.d(MAIN_ACTIVITY_TAG, "End of OnComplete " +mLastLocation.toString());
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.d(MAIN_ACTIVITY_TAG, "Task<Location>: " + e.getMessage());
-                        }
-                    }).addOnCanceledListener(new OnCanceledListener() {
-                                @Override
-                                public void onCanceled() {
-                                    Log.d(MAIN_ACTIVITY_TAG, "Task<Location> getLastLocation: Canceled");
-                                }
-                            });
-            }
-        })
-        .addOnCanceledListener(new OnCanceledListener() {
-            @Override
-            public void onCanceled() {
-                Log.d(MAIN_ACTIVITY_TAG, "Task<Location>: Canceled");
-            }
-        })
-        .addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d(MAIN_ACTIVITY_TAG, "Task<Location>: " + e.getMessage());
-            }
-        });
-
-        mFusedLocationClient.removeLocationUpdates(locationIntent);
-
-
-    }
-
-
-    /***
-     * Action to execute when receiving a request Location
-     * Send back current position
-     */
-    public class SendResponseSms implements Command<Location> {
-        String receivingAddress;
-        public void execute(Location foundLocation) {
-            String responseMessage = locationMessages[response];
-            responseMessage += latitudeTag + foundLocation.getLatitude() + latitudeTagEnd + " ";
-            responseMessage += longitudeTag + foundLocation.getLongitude() + longitudeTagEnd;
-            handler.sendSMS(getApplicationContext(), receivingAddress, responseMessage);
-        }
-        public  SendResponseSms(String receiverAddress)
-        {
-            receivingAddress = receiverAddress;
-        }
-    }
 
 
     public void requestSmsPermission()
@@ -305,32 +231,31 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
     /***
      * Based on the message's content, this method informs the user if it's a response message,
-     * it responds to the message if it's a request message
+     * Opens AlarmAndLocateActivity if it's a request message,
      *
      * @param message Received SMSMessage class of SmsHandler library
      */
     public  void onReceive(SMSMessage message)
     {
+        String receivedStringMessage = message.getData();
+        Log.d(MAIN_ACTIVITY_TAG, "onReceive" + receivedStringMessage);
 
+        if (receivedStringMessage.contains(constants.locationMessages[constants.request])
+                || receivedStringMessage.contains(constants.audioAlarmMessages[constants.request])) {
 
-        String receivedStringMesage = message.getData();
-        Log.d(MAIN_ACTIVITY_TAG, "onReceive" + receivedStringMesage);
-
-
-        if(receivedStringMesage.contains(locationMessages[request]))
-        {
-            //Action to execute when device receives a Location request
-            sendResponseSms = new SendResponseSms(message.getPeer().getAddress());
-            getLastLocation(sendResponseSms);
+            Intent openAlarmAndLocateActivityIntent = new Intent(getApplicationContext(), AlarmAndLocateActivity.class);
+            openAlarmAndLocateActivityIntent.putExtra(constants.receivedStringMessage, message.getData());
+            openAlarmAndLocateActivityIntent.putExtra(constants.receivedStringAddress, message.getPeer().getAddress());
+            openAlarmAndLocateActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getApplicationContext().startActivity(openAlarmAndLocateActivityIntent);
         }
 
-        if(receivedStringMesage.contains(locationMessages[response]))
-        {
+        if(receivedStringMessage.contains(constants.locationMessages[constants.response])){
             Double longitude = 0.0;
             Double latitude = 0.0;
             try {
-                longitude = Double.parseDouble(getLongitude(receivedStringMesage));
-                latitude = Double.parseDouble(getLatitude(receivedStringMesage));
+                longitude = Double.parseDouble(getLongitude(receivedStringMessage));
+                latitude = Double.parseDouble(getLatitude(receivedStringMessage));
                 Log.d(MAIN_ACTIVITY_TAG, latitude.toString() + "," +longitude.toString());
                 OpenMapsUrl(latitude, longitude); //Should be working
             }
@@ -339,10 +264,6 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
                 Toast.makeText(getApplicationContext(), "Response message contains error",Toast.LENGTH_LONG).show();
             }
 
-        }
-        if(receivedStringMesage.contains(audioAlarmMessages[request]))
-        {
-            //TODO: activate alarm
         }
 
         Toast.makeText(getApplicationContext(), "Message Received",Toast.LENGTH_LONG).show();
@@ -367,8 +288,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
     public String getLatitude(String receivedMessage)
     {
-        int start = receivedMessage.indexOf(latitudeTag) + latitudeTag.length();
-        int end = receivedMessage.indexOf(latitudeTagEnd);
+        int start = receivedMessage.indexOf(constants.latitudeTag) + constants.latitudeTag.length();
+        int end = receivedMessage.indexOf(constants.latitudeTagEnd);
         Log.d(MAIN_ACTIVITY_TAG, start +" " +end);
         return receivedMessage.substring(start, end);
     }
@@ -376,8 +297,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     public String getLongitude(String receivedMessage)
     {
         Log.d(MAIN_ACTIVITY_TAG, "getLong: "+ receivedMessage);
-        int start = receivedMessage.indexOf(longitudeTag) + longitudeTag.length();
-        int end = receivedMessage.indexOf(longitudeTagEnd);
+        int start = receivedMessage.indexOf(constants.longitudeTag) + constants.longitudeTag.length();
+        int end = receivedMessage.indexOf(constants.longitudeTagEnd);
 
         Log.d(MAIN_ACTIVITY_TAG, start +" " +end);
         return receivedMessage.substring(start, end);
@@ -389,6 +310,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(intent);
     }
+
+
 
 }
 

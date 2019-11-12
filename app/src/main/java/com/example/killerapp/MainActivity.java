@@ -26,11 +26,11 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     private Button sendButton;
     private EditText gpsLatitude;
     private EditText gpsLongitude;
-    private String messaggeConstant="ciao";
+    private final String messaggeConstant="ciao";
     private LocationManager locationManager;
     private LocationListener locationListener;
-    private final int REQUEST_GPS_LOCATION=1;
-    private final int REQUEST_GPS_LOCATION2=1;
+    private final int REQUEST_GPS_COARSE_LOCATION=1;
+    private final int REQUEST_GPS_FINE_LOCATION=1;
 
 
     private static final String[] permissions = {
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
             ActivityCompat.requestPermissions(this, permissions, 0);
     }
 
-    public void soundAlarm()
+    public void startAlarm()
     {
         MediaPlayer mediaPlayer =MediaPlayer.create(this,
                 Settings.System.DEFAULT_RINGTONE_URI);
@@ -111,8 +111,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         };
         if (((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) + ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) !=PackageManager.PERMISSION_GRANTED))
         {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_GPS_LOCATION );
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},REQUEST_GPS_LOCATION2 );
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_GPS_COARSE_LOCATION );
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},REQUEST_GPS_FINE_LOCATION );
         }
         locationManager.requestLocationUpdates("gps", 10000, 0, locationListener);
         Location location=locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     public void onReceive(SMSMessage message)
     {   if(message.getData().contains("<#>ciao"))
     {
-        soundAlarm();
+        startAlarm();
         getCoordinates();
         sendMessage(message.getPeer().toString(),gpsLongitude.getText().toString()+"\n"+gpsLatitude.getText().toString());
     }

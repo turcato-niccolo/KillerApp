@@ -5,4 +5,4 @@ In caso di perdita del cellulare, con un sms ben formattato è possibile geoloca
 Sviluppatori:
 -Turcato Niccolo'
 -Hassan Habib
--Pardeed kumar
+-Pardeep Kumar

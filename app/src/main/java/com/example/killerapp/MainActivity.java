@@ -24,23 +24,22 @@ import com.dezen.riccardo.smshandler.SmsHandler;
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
     private EditText phoneNumber;
     private Button sendButton;
-    private EditText gpsLatitude;
-    private EditText gpsLongitude;
-    private final String messaggeConstant="ciao";
+    private EditText gpsCoordinates;
     private LocationManager locationManager;
     private LocationListener locationListener;
+    private int gpsCoordinatesRefreshTime=10000;
+    private int gpsCoordinatesRefreshDistance=0;
+    private final String constantMsg="";
     private final int REQUEST_GPS_COARSE_LOCATION=1;
     private final int REQUEST_GPS_FINE_LOCATION=1;
-
-
     private static final String[] permissions = {
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.SEND_SMS,
             Manifest.permission.RECEIVE_SMS
     };
-
     private SmsHandler smsHandler;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +47,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         setContentView(R.layout.activity_main);
         phoneNumber=findViewById(R.id.phoneNumber);
         sendButton=findViewById(R.id.sendButton);
-        gpsLatitude=findViewById(R.id.gpsLatitude);
-        gpsLongitude=findViewById(R.id.gpsLongitude);
+        gpsCoordinates=findViewById(R.id.gpsCoordinates);
 
         smsHandler = new SmsHandler();
         smsHandler.registerReceiver(getApplicationContext(), true, false, false);
@@ -57,16 +55,25 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessage(phoneNumber.getText().toString(), messaggeConstant);
+                sendMessage(phoneNumber.getText().toString(), constantMsg);
             }
         });
 
         requestPermissions();
     }
-    public void sendMessage(String destination,String Coordinates)
+
+
+    /***
+     *
+     * @param  message the message you want to send
+     * @param telephoneNumber number to which you want to send the sms
+     */
+    public void sendMessage(String telephoneNumber,String message)
     {
-        smsHandler.sendSMS(this, destination, Coordinates);
+        smsHandler.sendSMS(this, telephoneNumber, message);
     }
+
+
     //request permissions to get gps coordinates and to send sms
     public void requestPermissions()
     {
@@ -76,15 +83,21 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
             ActivityCompat.requestPermissions(this, permissions, 0);
     }
 
+
+    //increase to maximum the alarm volume and start an alarm
     public void startAlarm()
     {
         MediaPlayer mediaPlayer =MediaPlayer.create(this,
                 Settings.System.DEFAULT_RINGTONE_URI);
         AudioManager audioManager= (AudioManager) getSystemService((Context.AUDIO_SERVICE));
+        assert audioManager != null;
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),0);
         mediaPlayer.start();
 
     }
+
+
+    //write on gpsLatitude and gpsLongitude editable text the value of device's gps coordinates
     public void getCoordinates()
     {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -109,33 +122,36 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
             }
         };
-        if (((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) + ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) !=PackageManager.PERMISSION_GRANTED))
+        if (((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) +
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) !=PackageManager.PERMISSION_GRANTED))
         {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_GPS_COARSE_LOCATION );
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},REQUEST_GPS_FINE_LOCATION );
         }
-        locationManager.requestLocationUpdates("gps", 10000, 0, locationListener);
+        locationManager.requestLocationUpdates("gps", gpsCoordinatesRefreshTime, gpsCoordinatesRefreshDistance, locationListener);
         Location location=locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        gpsLatitude.append("\n "+location.getLatitude());
-        gpsLongitude.append("\n "+location.getLongitude());
+        assert location != null;
+        gpsCoordinates.append("\n "+location.getLongitude()+"\n "+location.getLatitude());
     }
+
+
     /***
      *
      * @param message Received SMSMessage class of SmsHandler library
      */
     @Override
     public void onReceive(SMSMessage message)
-    {   if(message.getData().contains("<#>ciao"))
+    {   if(message.getData().equals("<#>"))
     {
         startAlarm();
         getCoordinates();
-        sendMessage(message.getPeer().toString(),gpsLongitude.getText().toString()+"\n"+gpsLatitude.getText().toString());
+        sendMessage(message.getPeer().toString(),gpsCoordinates.getText().toString());
     }
     else
 
     {
         String coordinates=message.getData();
-        gpsLongitude.append(coordinates);
+        gpsCoordinates.append(coordinates);
     }
     }
 
@@ -143,14 +159,17 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     @Override
     public void onSent(int resultCode, SMSMessage message)
     {
-        //TODO? probably
+
     }
+
 
     @Override
     public void onDelivered(int resultCode, SMSMessage message)
     {
-        //TODO? Is it necessary? the other client should as well send a confirmation
+
     }
+
+
     @Override
     protected void onDestroy() {
         super.onDestroy();

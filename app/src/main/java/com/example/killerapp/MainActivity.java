@@ -51,9 +51,21 @@ import com.dezen.riccardo.smshandler.SMSMessage;
 import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
+
     public final String ACCESS_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
     public final String ACCESS_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
     public final String ACCESS_BACKGROUND_LOCATION = "android.permission.ACCESS_BACKGROUND_LOCATION";
+    private static final String[] permissions = {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            Manifest.permission.READ_SMS,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_PHONE_STATE
+    };
+
 
     public final int REQUEST_CODE_LOCATION = 0;
     public final int REQUEST_CODE_SMS = 1;
@@ -71,16 +83,6 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     private PendingIntent locationIntent;
 
     private LocationRequest locationRequest;
-
-
-
-    public final String SEND_SMS = "android.permission.SEND_SMS";
-    public final String RECEIVE_SMS = "android.permission.RECEIVE_SMS";
-    public final String READ_SMS = "android.permission.READ_SMS";
-    public final String READ_PHONE_STATE = "android.permission.READ_PHONE_STATE";
-
-
-
 
 
     private EditText txtPhoneNumber;
@@ -114,9 +116,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
         constants = new Constants();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        RequestAllPermissions();
-
+        requestPermissions();
 
 
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -157,76 +157,23 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     /***
      * Requests Android permissions if not granted
      */
-    private void RequestAllPermissions()
+    public void requestPermissions()
     {
-        if(!LocationPermissionsGranted())
-            requestLocationPermissions();
-
-        if(!SmsPermissionGranted())
-            requestSmsPermission();
-
-        if(!PhoneStatePermissionGranted())
-            requestPhoneStatePermission();
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)+
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)+
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)+
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)+
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)+
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)+
+                ContextCompat.checkSelfPermission(this,Manifest.permission.SEND_SMS)!=PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(this, permissions, 0);
     }
-
     private void StartActivity(Context context)
     {
         Intent alarmIntent = new Intent("android.intent.action.MAIN");
         alarmIntent.setClass(context, AlarmAndLocateActivity.class);
         alarmIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(alarmIntent);
-    }
-
-
-    /***
-     *  Checks ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION permissions
-     *  Returns true is permissions are guaranteed, false if otherwise
-     */
-    public boolean LocationPermissionsGranted()
-    {
-        return (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED);
-
-    }
-
-    /***
-     * Requests ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION permissions
-     */
-    public void requestLocationPermissions()
-    {
-        ActivityCompat.requestPermissions(this,
-                new String[]{ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION, ACCESS_BACKGROUND_LOCATION}, REQUEST_CODE_LOCATION);
-    }
-
-
-
-
-    public void requestSmsPermission()
-    {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS,
-                        Manifest.permission.READ_SMS},
-                REQUEST_CODE_SMS);
-
-    }
-    public void requestPhoneStatePermission()
-    {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.READ_PHONE_STATE},
-                REQUEST_CODE_PHONE_STATE);
-    }
-
-    public boolean PhoneStatePermissionGranted()
-    {
-        return (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED);
-    }
-
-    public boolean SmsPermissionGranted()
-    {
-        return (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED);
     }
 
     /***

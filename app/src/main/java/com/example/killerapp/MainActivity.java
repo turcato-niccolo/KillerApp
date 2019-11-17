@@ -2,25 +2,17 @@ package com.example.killerapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+
 
 
 import com.dezen.riccardo.smshandler.SmsHandler;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
@@ -30,9 +22,6 @@ import com.dezen.riccardo.smshandler.SMSMessage;
 
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
 
-    public final String ACCESS_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
-    public final String ACCESS_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
-    public final String ACCESS_BACKGROUND_LOCATION = "android.permission.ACCESS_BACKGROUND_LOCATION";
     private static final String[] permissions = {
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -43,33 +32,16 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_PHONE_STATE
     };
+    private final int APP_PERMISSION_REQUEST_CODE = 0;
 
-
-    public final int REQUEST_CODE_LOCATION = 0;
-    public final int REQUEST_CODE_SMS = 1;
-    private final int REQUEST_CODE_PHONE_STATE = 2;
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
     private Constants constants;
-
-    private final String killerAppWakelockTag = "killerapp:wakelockTag";
-
-    public TextView txtLocation;
-
-
-    private FusedLocationProviderClient mFusedLocationClient;
-    protected Location mLastLocation;
-    private PendingIntent locationIntent;
-
-    private LocationRequest locationRequest;
-
 
     private EditText txtPhoneNumber;
     private Button sendButton;
     private Button sendAlarmRequestButton;
     private Button sendLocationRequestButton;
 
-
-    private PowerManager.WakeLock wakeLock;
     private SmsHandler handler;
 
 
@@ -93,7 +65,6 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         handler.setListener(this);
 
         constants = new Constants();
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         requestPermissions();
 
 
@@ -144,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
                 ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)+
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)+
                 ContextCompat.checkSelfPermission(this,Manifest.permission.SEND_SMS)!=PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(this, permissions, 0);
+            ActivityCompat.requestPermissions(this, permissions, APP_PERMISSION_REQUEST_CODE);
     }
 
 
@@ -168,8 +139,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
         //The only expected response
         if(receivedStringMessage.contains(constants.locationMessages[constants.response])){
-            Double longitude = 0.0;
-            Double latitude = 0.0;
+            Double longitude;
+            Double latitude;
             try {
                 longitude = Double.parseDouble(getLongitude(receivedStringMessage));
                 latitude = Double.parseDouble(getLatitude(receivedStringMessage));
@@ -267,8 +238,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
     /***
      * Opens the default maps application at the given Location(latitude, longitude)
-     * @param mapsLatitude
-     * @param mapsLongitude
+     * @param mapsLatitude latitude extracted by response sms
+     * @param mapsLongitude longtitude extracted by response sms
      */
     public void OpenMapsUrl(Double mapsLatitude, Double mapsLongitude)
     {

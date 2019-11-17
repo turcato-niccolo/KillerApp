@@ -29,8 +29,8 @@ import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCU
 
 public class AlarmAndLocateResponseActivity extends AppCompatActivity {
     private final String AlarmAndLocateActivityTAG = "Alarm&LocateActivityTAG";
-    private String receivedStringMessage;
-    private String receivedStringAddress;
+    private String receivedTextMessage;
+    private String receivedMessageAddress;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationRequest locationRequest;
     private PendingIntent locationIntent;
@@ -42,9 +42,9 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
 
 
     /**
-     * This activity is created in all situations, so it needs to be executed also when screen is shut
+     * This activity is created in all situations, for each request, so it needs to be executed also when screen is shut
      *
-     * @param savedInstanceState
+     * @param savedInstanceState system parameter
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,25 +58,25 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
         constants = new Constants();
 
         //Params passed by methods tha called this activity
-        receivedStringMessage = getIntent().getStringExtra(constants.receivedStringMessage);
-        receivedStringAddress = getIntent().getStringExtra(constants.receivedStringAddress);
+        receivedTextMessage = getIntent().getStringExtra(constants.receivedStringMessage);
+        receivedMessageAddress = getIntent().getStringExtra(constants.receivedStringAddress);
         handler = new SmsHandler();
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        if (receivedStringMessage.contains(constants.locationMessages[constants.request])) {
+        if (receivedTextMessage.contains(constants.locationMessages[constants.request])) {
             //Action to execute when device receives a Location request
-            sendResponseSms = new SendResponseSms(receivedStringAddress);
+            sendResponseSms = new SendResponseSms(receivedMessageAddress);
             getLastLocation(sendResponseSms);
         }
 
-        if (receivedStringMessage.contains(constants.audioAlarmMessages[constants.request])) {
+        if (receivedTextMessage.contains(constants.audioAlarmMessages[constants.request])) {
             startAlarm(); //User has to close app manually to stop
         }
     }
 
     /***
      * Method that gets the last Location available of the device, and executes the imposed command
-     * callind command.execute(foundLocation)
+     * calling command.execute(foundLocation)
      *
      * @param command object of a class that implements interface Command
      */
@@ -158,10 +158,14 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
      */
     public void startAlarm()
     {
-        //Courtesy of P. Kumar
         mediaPlayer =MediaPlayer.create(this, Settings.System.DEFAULT_RINGTONE_URI);
         AudioManager audioManager= (AudioManager) getSystemService((Context.AUDIO_SERVICE));
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),0);
+        try{
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),0);
+        }
+        catch (Exception e) {
+            Log.e(AlarmAndLocateActivityTAG, "Error in setStreamVolume: " + e.getMessage());
+        }
         mediaPlayer.start();
     }
 
@@ -175,7 +179,7 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
     }
 
     /***
-     * Action to execute when receiving a request Location
+     * Action to execute when receiving a Location request
      * Sends back current position
      */
     public class SendResponseSms implements Command<Location> {
@@ -186,7 +190,7 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
             responseMessage += constants.longitudeTag + foundLocation.getLongitude() + constants.longitudeTagEnd;
             handler.sendSMS(getApplicationContext(), receivingAddress, responseMessage);
         }
-        public  SendResponseSms(String receiverAddress)
+        public SendResponseSms(String receiverAddress)
         {
             receivingAddress = receiverAddress;
         }

@@ -1,4 +1,5 @@
 package com.example.killerapp;
+//Reviewers expected: Scialpi, Ursino
 
 /***
  * Interface built to make method getLastLocation modular,

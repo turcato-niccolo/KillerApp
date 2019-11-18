@@ -20,6 +20,8 @@ import android.widget.EditText;
 
 import com.dezen.riccardo.smshandler.SMSMessage;
 
+//Reviewers expected: Scialpi, Ursino
+
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
 
     private static final String[] permissions = {

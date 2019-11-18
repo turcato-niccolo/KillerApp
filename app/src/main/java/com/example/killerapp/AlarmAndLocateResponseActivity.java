@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
+//Reviewers expected: Scialpi, Ursino
 
 public class AlarmAndLocateResponseActivity extends AppCompatActivity {
     private final String AlarmAndLocateActivityTAG = "Alarm&LocateActivityTAG";

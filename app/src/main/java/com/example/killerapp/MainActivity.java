@@ -3,9 +3,9 @@ package com.example.killerapp;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -21,34 +21,36 @@ import android.widget.EditText;
 import com.dezen.riccardo.smshandler.SMSMessage;
 import com.dezen.riccardo.smshandler.SmsHandler;
 
-public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
+public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener
+{
     private EditText phoneNumber;
-    private Button sendButton;
+    Button sendButton;
     private EditText gpsCoordinates;
-    private LocationManager locationManager;
-    private LocationListener locationListener;
-    private int gpsCoordinatesRefreshTime=10000;
-    private int gpsCoordinatesRefreshDistance=0;
+    LocationManager locationManager;
+    LocationListener locationListener;
+    int gpsCoordinatesRefreshTime=10000;
+    int gpsCoordinatesRefreshDistance=0;
     private final String constantMsg="";
-    private final int REQUEST_GPS_COARSE_LOCATION=1;
-    private final int REQUEST_GPS_FINE_LOCATION=1;
+    final int REQUEST_GPS_COARSE_LOCATION=1;
+    final int REQUEST_GPS_FINE_LOCATION=1;
     private static final String[] permissions = {
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.SEND_SMS,
-            Manifest.permission.RECEIVE_SMS
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.READ_PHONE_STATE
     };
     private SmsHandler smsHandler;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         phoneNumber=findViewById(R.id.phoneNumber);
         sendButton=findViewById(R.id.sendButton);
         gpsCoordinates=findViewById(R.id.gpsCoordinates);
-
         smsHandler = new SmsHandler();
         smsHandler.registerReceiver(getApplicationContext(), true, false, false);
         smsHandler.setListener(this);
@@ -58,13 +60,12 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
                 sendMessage(phoneNumber.getText().toString(), constantMsg);
             }
         });
-
         requestPermissions();
     }
 
 
     /***
-     *
+     * send a message to the inserted number
      * @param  message the message you want to send
      * @param telephoneNumber number to which you want to send the sms
      */
@@ -74,17 +75,24 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     }
 
 
-    //request permissions to get gps coordinates and to send sms
+    /***
+     * request all the permissions to run the app if they're not already granted
+     */
     public void requestPermissions()
     {
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)+
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)+
-                ContextCompat.checkSelfPermission(this,Manifest.permission.SEND_SMS)!=PackageManager.PERMISSION_GRANTED)
+                ContextCompat.checkSelfPermission(this,Manifest.permission.SEND_SMS)+
+        ContextCompat.checkSelfPermission(this,Manifest.permission.READ_PHONE_STATE)
+                !=PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(this, permissions, 0);
     }
 
 
-    //increase to maximum the alarm volume and start an alarm
+    /***
+     * increase the alarm volume to maximum and start the default alarm
+     * the alarm stops when the activity is closed
+     */
     public void startAlarm()
     {
         MediaPlayer mediaPlayer =MediaPlayer.create(this,
@@ -97,8 +105,12 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     }
 
 
-    //write on gpsLatitude and gpsLongitude editable text the value of device's gps coordinates
-    public void getCoordinates()
+    /***
+     * get the current phone's gps coordinates and write them on the "gps coordinates" editable text
+     * @param gpsCoordinatesRefreshDistance refresh the gpsCoordinate when you travel gpsCoordinateRefreshDistance meters
+     * @param gpsCoordinatesRefreshTime refresh the gpsCoordinate every gpsCoordinateRefreshTime seconds
+     */
+    public void getCoordinates(int gpsCoordinatesRefreshTime,int gpsCoordinatesRefreshDistance)
     {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener= new LocationListener() {
@@ -136,42 +148,44 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
 
     /***
-     *
+     * when a message is received with only the key word it open a new empty activity,start an alarm and send a message ,to the phone number
+     * he received the message from ,with the device's current gps coordinates
      * @param message Received SMSMessage class of SmsHandler library
      */
     @Override
     public void onReceive(SMSMessage message)
-    {   if(message.getData().equals("<#>"))
     {
-        startAlarm();
-        getCoordinates();
-        sendMessage(message.getPeer().toString(),gpsCoordinates.getText().toString());
-    }
+        if(message.getData().equals("<#>"))
+        {
+            Intent intent = new Intent(this, EmptyActivity.class);
+            startActivity(intent);
+            startAlarm();
+            getCoordinates(gpsCoordinatesRefreshTime,gpsCoordinatesRefreshDistance);
+            sendMessage(message.getPeer().toString(),gpsCoordinates.getText().toString());
+        }
     else
-
-    {
-        String coordinates=message.getData();
-        gpsCoordinates.append(coordinates);
-    }
+        {
+            String coordinates=message.getData();
+            gpsCoordinates.append(coordinates);
+        }
     }
 
 
     @Override
     public void onSent(int resultCode, SMSMessage message)
     {
-
     }
 
 
     @Override
     public void onDelivered(int resultCode, SMSMessage message)
     {
-
     }
 
 
     @Override
-    protected void onDestroy() {
+    protected void onDestroy()
+    {
         super.onDestroy();
         smsHandler.clearListener();
         smsHandler.unregisterReceiver(getApplicationContext());

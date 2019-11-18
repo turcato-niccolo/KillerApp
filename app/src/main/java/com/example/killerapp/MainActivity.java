@@ -1,3 +1,4 @@
+
 package com.example.killerapp;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,6 +22,10 @@ import android.widget.EditText;
 import com.dezen.riccardo.smshandler.SMSMessage;
 import com.dezen.riccardo.smshandler.SmsHandler;
 
+/**
+ * @author Pardeep Kumar
+ * 
+ */
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener
 {
     private EditText phoneNumber;

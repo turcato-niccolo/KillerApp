@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 
+//Reviewers expected: Scialpi, Ursino
+
 public class KillerAppClosedReceiver extends BroadcastReceiver {
 /***
  * This receiver responds when the app is closed, the Smshandler library's receiver can't be declared to work when app is closed

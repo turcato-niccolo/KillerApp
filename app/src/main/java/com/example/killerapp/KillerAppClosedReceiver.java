@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 
+import com.dezen.riccardo.smshandler.SmsHandler;
+
 public class KillerAppClosedReceiver extends BroadcastReceiver {
 /***
  * This receiver responds when the app is closed, the Smshandler library's receiver can't be declared to work when app is closed
@@ -17,16 +19,21 @@ public class KillerAppClosedReceiver extends BroadcastReceiver {
  *
  *
  */
+    LocationManager locationManager;
+    AlarmManager alarmManager;
     String receivedStringMessage;
+
+
     @Override
     public void onReceive(Context context, Intent intent) {
         Constants constants = new Constants();
+        locationManager = new LocationManager(SmsHandler.WAKE_KEY);
         SmsMessage[] messages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
         for (SmsMessage message: messages) {
             //The messages built by this app fit in a single sms, so this cycle won't open the activity in more than one iteration
             receivedStringMessage = message.getMessageBody();
-            if (receivedStringMessage.contains(constants.locationMessages[constants.request])
-                    || receivedStringMessage.contains(constants.audioAlarmMessages[constants.request])) {
+            if (locationManager.containsLocationRequest(receivedStringMessage)
+                    || alarmManager.containsAlarmRequest(receivedStringMessage)) {
                 Intent openAlarmAndLocateActivityIntent = new Intent(context, AlarmAndLocateResponseActivity.class);
                 //Forwards message text and return address as parameters defined in the constants class
                 openAlarmAndLocateActivityIntent.putExtra(constants.receivedStringMessage, receivedStringMessage);

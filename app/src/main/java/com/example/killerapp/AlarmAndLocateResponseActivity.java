@@ -31,14 +31,12 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
     private final String AlarmAndLocateActivityTAG = "Alarm&LocateActivityTAG";
     private String receivedTextMessage;
     private String receivedMessageAddress;
-    private FusedLocationProviderClient mFusedLocationClient;
-    private LocationRequest locationRequest;
-    private PendingIntent locationIntent;
-    private Location mLastLocation;
     private Constants constants;
     private SmsHandler handler;
     private  SendResponseSms sendResponseSms;
     private MediaPlayer mediaPlayer;
+    private LocationManager locationManager;
+    private AlarmManager alarmManager;
 
 
     /**
@@ -56,102 +54,27 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
         setContentView(R.layout.activity_alarm_and_locate);
         //
         constants = new Constants();
+        locationManager = new LocationManager(SmsHandler.WAKE_KEY);
+        alarmManager = new AlarmManager(SmsHandler.WAKE_KEY);
 
         //Params passed by methods tha called this activity
         receivedTextMessage = getIntent().getStringExtra(constants.receivedStringMessage);
         receivedMessageAddress = getIntent().getStringExtra(constants.receivedStringAddress);
         handler = new SmsHandler();
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        if (receivedTextMessage.contains(constants.locationMessages[constants.request])) {
+
+        if (locationManager.containsLocationRequest(receivedTextMessage)) {
             //Action to execute when device receives a Location request
-            sendResponseSms = new SendResponseSms(receivedMessageAddress);
-            getLastLocation(sendResponseSms);
+            sendResponseSms = new SendResponseSms(receivedMessageAddress, handler, getApplicationContext());
+            locationManager.getLastLocation(this, sendResponseSms);
         }
 
-        if (receivedTextMessage.contains(constants.audioAlarmMessages[constants.request])) {
+        if (alarmManager.containsAlarmRequest(receivedTextMessage))
             startAlarm(); //User has to close app manually to stop
-        }
+
     }
 
-    /***
-     * Method that gets the last Location available of the device, and executes the imposed command
-     * calling command.execute(foundLocation)
-     *
-     * @param command object of a class that implements interface Command
-     */
-    private void getLastLocation(final Command command)
-    {
-        mFusedLocationClient.flushLocations();
-        locationRequest = LocationRequest.create();
-        locationRequest.setPriority(PRIORITY_HIGH_ACCURACY);
 
-        mFusedLocationClient.getLocationAvailability().addOnSuccessListener(new OnSuccessListener<LocationAvailability>() {
-            @Override
-            public void onSuccess(LocationAvailability locationAvailability) {
-                Log.d(AlarmAndLocateActivityTAG, "onSuccess: locationAvailability.isLocationAvailable " + locationAvailability.isLocationAvailable());
-
-                mFusedLocationClient.requestLocationUpdates(locationRequest, locationIntent)
-                        .addOnCompleteListener(new OnCompleteListener() {
-                            @Override
-                            public void onComplete(@NonNull Task task) {
-                                Log.d(AlarmAndLocateActivityTAG, "Update Result: " + task.getResult());
-                            }
-                        });
-
-                Log.d(AlarmAndLocateActivityTAG, "Requested updated location: ");
-
-                mFusedLocationClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        Log.d(AlarmAndLocateActivityTAG, "Completed lastLocation");
-                        Log.d(AlarmAndLocateActivityTAG, "Task<Location> successful " +  task.isSuccessful());
-
-                        if (task.isSuccessful() && task.getResult() != null) {
-                            mLastLocation = task.getResult();
-                            Log.d(AlarmAndLocateActivityTAG, "Victory!" +mLastLocation.toString());
-                            command.execute(mLastLocation);
-                            /*
-                            mLastLocation is used directly here because once out of OnComplete
-                            the Location isn't available and the variable that contains it
-                            becomes null
-                            */
-                        } else if (!task.isSuccessful()) {
-                            Log.d(AlarmAndLocateActivityTAG, "Task<Location> not successful");
-                        } else if (task.getResult() == null) {
-                            Log.d(AlarmAndLocateActivityTAG, "Task<Location> result is null");
-                        }
-                        Log.d(AlarmAndLocateActivityTAG, "End of OnComplete " +mLastLocation.toString());
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(AlarmAndLocateActivityTAG, "Task<Location>: " + e.getMessage());
-                    }
-                }).addOnCanceledListener(new OnCanceledListener() {
-                    @Override
-                    public void onCanceled() {
-                        Log.d(AlarmAndLocateActivityTAG, "Task<Location> getLastLocation: Canceled");
-                    }
-                });
-            }
-        })
-                .addOnCanceledListener(new OnCanceledListener() {
-                    @Override
-                    public void onCanceled() {
-                        Log.d(AlarmAndLocateActivityTAG, "Task<Location>: Canceled");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(AlarmAndLocateActivityTAG, "Task<Location>: " + e.getMessage());
-                    }
-                });
-
-        //The request is high priority, this instruction removes it to be more efficient
-        mFusedLocationClient.removeLocationUpdates(locationIntent);
-    }
 
     /**
      * Starts and alarm with the default ringtone of the device, stops when activity is closed by user
@@ -171,28 +94,12 @@ public class AlarmAndLocateResponseActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+
         handler.clearListener();
         handler.unregisterReceiver(getApplicationContext());
         if(mediaPlayer != null && mediaPlayer.isPlaying())
             mediaPlayer.stop();
+        super.onDestroy();
     }
 
-    /***
-     * Action to execute when receiving a Location request
-     * Sends back current position
-     */
-    public class SendResponseSms implements Command<Location> {
-        String receivingAddress;
-        public void execute(Location foundLocation) {
-            String responseMessage = constants.locationMessages[constants.response];
-            responseMessage += constants.latitudeTag + foundLocation.getLatitude() + constants.latitudeTagEnd + " ";
-            responseMessage += constants.longitudeTag + foundLocation.getLongitude() + constants.longitudeTagEnd;
-            handler.sendSMS(getApplicationContext(), receivingAddress, responseMessage);
-        }
-        public SendResponseSms(String receiverAddress)
-        {
-            receivingAddress = receiverAddress;
-        }
-    }
 }

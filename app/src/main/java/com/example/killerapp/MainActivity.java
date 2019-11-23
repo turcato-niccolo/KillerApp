@@ -20,6 +20,10 @@ import android.widget.EditText;
 
 import com.dezen.riccardo.smshandler.SMSMessage;
 
+/***
+ * @author Turcato, Kumar, Habib
+ */
+
 public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsEventListener {
 
     private static final String[] permissions = {
@@ -43,12 +47,18 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     private Button sendLocationRequestButton;
 
     private SmsHandler handler;
+    private LocationManager locationManager;
+    private AlarmManager alarmManager;
 
 
     private final String MAPS_START_URL = "https://www.google.com/maps/search/?api=1&query=";
     //NOTE: concat latitude,longitude
 
 
+    /***
+     * @author Turcato
+     * @param savedInstanceState system parameter
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,35 +76,63 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
         constants = new Constants();
         requestPermissions();
-
+        locationManager = new LocationManager(SmsHandler.WAKE_KEY);
+        alarmManager = new AlarmManager(SmsHandler.WAKE_KEY);
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Wake key to indicate urgency to the device
-                String requestStringMessage = SmsHandler.WAKE_KEY + constants.locationMessages[constants.request]
-                        + " " + constants.audioAlarmMessages[constants.request];
-                handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
+                SendAlarmAndLocationRequest(txtPhoneNumber.getText().toString());
             }
         });
 
         sendLocationRequestButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String requestStringMessage = SmsHandler.WAKE_KEY + constants.locationMessages[constants.request];
-                handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
+                SendLocationRequest(txtPhoneNumber.getText().toString());
             }
         });
 
         sendAlarmRequestButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String requestStringMessage = SmsHandler.WAKE_KEY + constants.audioAlarmMessages[constants.request];
-                handler.sendSMS(getApplicationContext(),txtPhoneNumber.getText().toString(), requestStringMessage);
+                SendAlarmRequest(txtPhoneNumber.getText().toString());
             }
         });
     }
 
+    /***
+     * @author Turcato
+     *
+     * @param phoneNumber phone number to which send sms Location request
+     */
+    private void SendLocationRequest(String phoneNumber)
+    {
+        String requestStringMessage = locationManager.getRequestStringMessage();
+        handler.sendSMS(getApplicationContext(),phoneNumber, requestStringMessage);
+    }
+    /***
+     * @author Turcato
+     *
+     * @param phoneNumber phone number to which send sms Location & alarm request
+     */
+    private void SendAlarmRequest(String phoneNumber)
+    {
+        String requestStringMessage = alarmManager.getRequestStringMessage();
+        handler.sendSMS(getApplicationContext(),phoneNumber, requestStringMessage);
+    }
+    /***
+     * @author Turcato
+     *
+     * @param phoneNumber phone number to which send sms alarm request
+     */
+    private void SendAlarmAndLocationRequest(String phoneNumber)
+    {
+        //Wake key to indicate urgency to the device
+        String requestStringMessage = alarmManager.getRequestStringMessage()
+                +locationManager.getRequestStringMessage();
+        handler.sendSMS(getApplicationContext(), phoneNumber, requestStringMessage);
+    }
 
 
     @Override
@@ -104,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
     }
     /***
+     * @author Turcato
      * Requests Android permissions if not granted
      */
     public void requestPermissions()
@@ -120,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
 
     /***
+     * @author Turcato
      * This method is executed both when the app is running or not.
      * Based on the message's content, opens AlarmAndLocateResponseActivity if it's a request message,
      * otherwise if it contains the location response (the only one expected) it opens the default maps application
@@ -132,29 +172,30 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
         String receivedStringMessage = message.getData();
 
         //Both Requests are handled by the other activity
-        if (receivedStringMessage.contains(constants.locationMessages[constants.request])
-                || receivedStringMessage.contains(constants.audioAlarmMessages[constants.request])) {
+        if (locationManager.containsLocationRequest(receivedStringMessage)
+                || alarmManager.containsAlarmRequest(receivedStringMessage)) {
             OpenRequestsActivity(receivedStringMessage, message.getPeer().getAddress());
         }
 
         //The only expected response
-        if(receivedStringMessage.contains(constants.locationMessages[constants.response])){
+        if(locationManager.containsLocationResponse(receivedStringMessage)){
             Double longitude;
             Double latitude;
             try {
-                longitude = Double.parseDouble(getLongitude(receivedStringMessage));
-                latitude = Double.parseDouble(getLatitude(receivedStringMessage));
+                longitude = Double.parseDouble(locationManager.getLongitude(receivedStringMessage));
+                latitude = Double.parseDouble(locationManager.getLatitude(receivedStringMessage));
                 OpenMapsUrl(latitude, longitude);
             }
             catch (Exception e){
                 //Written in log for future users to report
-                Log.e(MAIN_ACTIVITY_TAG,constants.locationMessages[constants.response] + e.getMessage());
+                Log.e(MAIN_ACTIVITY_TAG,locationManager.response + ": " + e.getMessage());
             }
 
         }
     }
 
     /***
+     * @author Turcato
      * Opens the AlarmAndLocateResponseActivity, forwarding the receivedMessageText and the receivedMessageReturnAddress
      * The opened activity's task is to respond to the given requests, that can't be handled on this
      * activity because the app might be closed, so the response activity has to be forcedly opened.
@@ -189,54 +230,20 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     }
 
     /**
+     * @author Turcato
      * Safely deletes the listeners
      */
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         handler.clearListener();
         handler.unregisterReceiver(getApplicationContext());
+        super.onDestroy();
     }
 
-    /***
-     * Extract the string contained between the latitude tags (if present)
-     * Returns empty string if it doesn't find the tags
-     *
-      * @param receivedMessage string containing the text received sy sms
-     * @return if present, the string contained between the latitude tags, empty string if it doesn't find the tags
-     */
-    public String getLatitude(String receivedMessage)
-    {
-        int start = receivedMessage.indexOf(constants.latitudeTag);
-        int end = receivedMessage.indexOf(constants.latitudeTagEnd);
-        if(start > -1 && end > -1)
-        {
-            start += constants.latitudeTag.length();
-            return receivedMessage.substring(start, end);
-        }
-        return "";
-    }
+
 
     /***
-     * Extract the string contained between the longitude tags (if present)
-     * Returns empty string if it doesn't find the tags
-     *
-     * @param receivedMessage string containing the text received sy sms
-     * @return if present, the string contained between the longitude tags, empty string if it doesn't find the tags
-     */
-    public String getLongitude(String receivedMessage)
-    {
-        int start = receivedMessage.indexOf(constants.longitudeTag);
-        int end = receivedMessage.indexOf(constants.longitudeTagEnd);
-        if(start > -1 && end > -1)
-        {
-            start += constants.longitudeTag.length();
-            return receivedMessage.substring(start, end);
-        }
-        return "";
-    }
-
-    /***
+     * @author Turcato
      * Opens the default maps application at the given Location(latitude, longitude)
      * @param mapsLatitude latitude extracted by response sms
      * @param mapsLongitude longtitude extracted by response sms

@@ -33,9 +33,10 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
     private EditText gpsCoordinates;
     LocationManager locationManager;
     LocationListener locationListener;
-    int gpsCoordinatesRefreshTime=10000;
-    int gpsCoordinatesRefreshDistance=0;
+    int GPS_COORDINATE_REFRESH_TIME=10000;
+    int GPS_COORDINATE_REFRESH_DISTANCE=0;
     private final String constantMsg="";
+    private final  String comparisonKey="#";
     final int REQUEST_GPS_COARSE_LOCATION=1;
     final int REQUEST_GPS_FINE_LOCATION=1;
     private static final String[] permissions = {
@@ -70,9 +71,9 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
 
     /***
-     * send a message to the inserted number
-     * @param  message the message you want to send
-     * @param telephoneNumber number to which you want to send the sms
+     * Send a message to the inserted number
+     * @param  message The message you want to send
+     * @param telephoneNumber Number to which you want to send the sms
      */
     public void sendMessage(String telephoneNumber,String message)
     {
@@ -81,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
 
     /***
-     * request all the permissions to run the app if they're not already granted
+     * Request all the permissions to run the app if they're not already granted
      */
     public void requestPermissions()
     {
@@ -95,8 +96,8 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
 
     /***
-     * increase the alarm volume to maximum and start the default alarm
-     * the alarm stops when the activity is closed
+     * Increase the alarm volume to maximum and start the default alarm
+     * The alarm stops when the activity is closed
      */
     public void startAlarm()
     {
@@ -111,11 +112,10 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
 
     /***
-     * get the current phone's gps coordinates and write them on the "gps coordinates" editable text
-     * @param gpsCoordinatesRefreshDistance refresh the gpsCoordinate when you travel gpsCoordinateRefreshDistance meters
-     * @param gpsCoordinatesRefreshTime refresh the gpsCoordinate every gpsCoordinateRefreshTime seconds
+     * create and return LocationManager object to be used in the other method to get the coordinates.
+     * @return a LocationManager object
      */
-    public void getCoordinates(int gpsCoordinatesRefreshTime,int gpsCoordinatesRefreshDistance)
+    public LocationManager getLocationManager()
     {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener= new LocationListener() {
@@ -139,13 +139,23 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
             }
         };
+
+        return locationManager;
+    }
+    /***
+     * Get the current phone's gps coordinates and write them on the "gps coordinates" editable text
+     * @param GPS_COORDINATE_REFRESH_TIME Refresh the gpsCoordinate when you travel GPS_COORDINATE_REFRESH_TIME meters
+     * @param GPS_COORDINATE_REFRESH_DISTANCE Refresh the gpsCoordinate every GPS_COORDINATE_REFRESH_DISTANCE seconds
+     */
+    public void getCoordinates(LocationManager locationManager, int GPS_COORDINATE_REFRESH_TIME,int GPS_COORDINATE_REFRESH_DISTANCE)
+    {
         if (((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) +
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) !=PackageManager.PERMISSION_GRANTED))
         {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_GPS_COARSE_LOCATION );
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},REQUEST_GPS_FINE_LOCATION );
         }
-        locationManager.requestLocationUpdates("gps", gpsCoordinatesRefreshTime, gpsCoordinatesRefreshDistance, locationListener);
+        locationManager.requestLocationUpdates("gps", GPS_COORDINATE_REFRESH_TIME, GPS_COORDINATE_REFRESH_DISTANCE, locationListener);
         Location location=locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         assert location != null;
         gpsCoordinates.append("\n "+location.getLongitude()+"\n "+location.getLatitude());
@@ -153,19 +163,20 @@ public class MainActivity extends AppCompatActivity implements SmsHandler.OnSmsE
 
 
     /***
-     * when a message is received with only the key word it open a new empty activity,start an alarm and send a message ,to the phone number
-     * he received the message from ,with the device's current gps coordinates
+     * When a message is received with only the key word it open a new empty activity,start an alarm and send a message ,to the phone number
+     * it received the message from ,with the device's current gps coordinates
      * @param message Received SMSMessage class of SmsHandler library
      */
     @Override
     public void onReceive(SMSMessage message)
     {
-        if(message.getData().equals("<#>"))
+        if(message.getData().equals(comparisonKey))
         {
             Intent intent = new Intent(this, EmptyActivity.class);
             startActivity(intent);
             startAlarm();
-            getCoordinates(gpsCoordinatesRefreshTime,gpsCoordinatesRefreshDistance);
+            locationManager =getLocationManager();
+            getCoordinates(locationManager,GPS_COORDINATE_REFRESH_TIME,GPS_COORDINATE_REFRESH_DISTANCE);
             sendMessage(message.getPeer().toString(),gpsCoordinates.getText().toString());
         }
     else
